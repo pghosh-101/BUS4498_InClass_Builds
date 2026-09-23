@@ -1,4 +1,4 @@
-# [Exact task name] Task Specification
+# Investigate Attendance Issues Task Specification
 
 *BUS 4498 Team Build Milestone 1. Create one copy for each L3 task. Save it in `our_team_agent/agent/task-specs/` in `BUS4498_Team_Build`. Use the task name in lowercase with hyphens between words; replace `&` with `and` and remove other punctuation.*
 
@@ -6,9 +6,9 @@
 
 ```yaml
 # BASIC INFORMATION
-task_id: "[Exact workflow task ID]"
-task_name: "[Exact workflow task name]"
-task_owner: "[Person or role accountable for this task]"
+task_id: "T8"
+task_name: "Investigate attendance issues"
+task_owner: "designated organizer"
 
 # Agent Inference Configuration
 Provider: [e.g., Groq, OpenAI, Claude, Google Gemini]
@@ -20,18 +20,34 @@ On inference failure or exhausted limits: Record the unresolved status and hand 
 
 ## 1. Task Goal
 
-- **Objective:** [What business result should this task produce?]
+- **Objective:** Resolve attendance-data or forecast-confidence issues so the workflow can continue with reliable recommendations or proceed to human review.
 
 ## 2. Inbound Inputs
 
-*Describe what the enclosing workflow must provide. Specify the structure of each input; do not invent customer, employee, or event data. Copy the Input block as needed.*
-
 ### Input 1
 
-- **Input name:** [Short name.]
-- **What it contains:** [Information the agent receives, including required fields and format.]
-- **Source:** [Task ID and name, person, or other permitted source.]
+- **Input name:** Planning data
+- **What it contains:** Current registration count, historical attendance rates from comparable CPVC events, and registration timing in a structured planning-data record.
+- **Source:** T2: Retrieve planning data
 
+### Input 2
+
+- **Input name:** Confirmation responses
+- **What it contains:** Available voluntary attendance confirmations and newly collected confirmation responses.
+- **Source:** T4: Collect confirmation responses
+
+### Input 3
+
+- **Input name:** Preliminary forecast
+- **What it contains:** Expected attendance and the uncertainty range.
+- **Source:** T6: Estimate attendance
+
+### Input 4
+
+- **Input name:** Exception condition
+- **What it contains:** The data or forecast-confidence condition requiring investigation, such as incomplete, contradictory, unusually different, or insufficiently confident information.
+- **Source:** D1: Data and confidence sufficient?
+  
 ## 3. Tool Permissions and Boundaries
 
 *Name each planned tool and specify its permitted use. Use verb-object names, such as `retrieve_records`, usually matching the task or permitted subtask it supports. Tool name identifies the capability; tool type identifies the proposed implementation. No scripts or working integrations are required.*
@@ -57,33 +73,43 @@ On inference failure or exhausted limits: Record the unresolved status and hand 
 
 ## 4. How the Agent Should Reason
 
-*Define permitted kinds of work rather than a fixed sequence. The agent selects its next subtask using intermediate findings and may skip, repeat, or combine permitted subtasks within Section 3's limits. Individual subtasks do not all have to be L3. Copy the Permitted Subtask block as needed.*
-
 ### Permitted Subtask 1
 
-- **Subtask name:** [Use a verb-object name.]
-- **Subtask description:** [What information does it examine and what finding or intermediate result does it produce?]
-- **Subtask boundary:** [What may and may not be done, including prerequisites and required approval?]
-- **Retry limits:** [Maximum additional attempts after the initial attempt; 0 means no retries. Repetition must also stay within Section 3's limits.]
+- **Subtask name:** Check data completeness
+- **Subtask description:** Examine the planning inputs and confirmation responses to identify missing or unusable information.
+- **Subtask boundary:** May inspect the provided event-planning information only. May not infer missing values, collect sensitive personal data, contact participants, or change workflow rules.
+- **Retry limits:** Maximum one additional attempt. If no useful finding is produced, select another permitted subtask or hand off.
+
+### Permitted Subtask 2
+
+- **Subtask name:** Compare attendance signals
+- **Subtask description:** Examine registration, historical attendance, registration timing, and confirmation responses to identify agreement, contradiction, or unusual patterns.
+- **Subtask boundary:** May compare only the provided planning information. May not add external data, alter source data, approve recommendations, or contact participants.
+- **Retry limits:** Maximum one additional attempt. If the same evidence produces no new finding, select another permitted subtask or hand off.
+
+### Permitted Subtask 3
+
+- **Subtask name:** Recalculate attendance estimate
+- **Subtask description:** Use available planning inputs and intermediate findings to produce a revised expected attendance and uncertainty range, or explain why a supported revision cannot be produced.
+- **Subtask boundary:** May recalculate the attendance estimate using permitted workflow inputs. May not finalize quantities, approve recommendations, or use sensitive personal data.
+- **Retry limits:** Maximum one additional attempt. If the estimate remains unsupported, hand off to a person.
 
 - **Decision guidance:** After each subtask, use its findings to select the permitted subtask most likely to resolve the most important remaining uncertainty. Do not follow a fixed sequence. If no permitted subtask can make useful progress, stop and hand the case to a person.
 
 ## 5. When to Stop or Hand Off to a Human
 
-- **Stop successfully when:** [What evidence shows that the required result is complete and acceptable? Confidence alone is not enough.]
-- **Hand off early when:** [What missing evidence, lack of progress, failure, or out-of-scope finding requires human review?]
-- **Hand off to:** [Specific person, role, or review queue.]
+- **Stop successfully when:** The investigation resolves the data or confidence issue and produces a supported basis for returning to T6: Estimate attendance.
+- **Hand off early when:** Required information remains missing or contradictory, permitted subtasks produce no useful progress, the task requires sensitive data or new data collection, or the issue cannot be resolved within the retry limits.
+- **Hand off to:** The designated organizer through a human-review request marked "Awaiting Review".
 
 Stop at the first applicable budget limit or handoff condition. While awaiting review, take no further autonomous action.
 
 ## 6. Outbound Deliverable
 
-*Revise these default items if your task needs a more specific deliverable, or retain them if they fit.*
-
-- **Status:** Completed or escalated to human.
-- **Result or recommendation:** The completed result. If escalated before reaching a supported result, write undetermined.
-- **Evidence summary:** The most important evidence supporting the result or explaining why no result could be reached.
+- **Status:** Resolved for re-estimation or escalated to human.
+- **Result or recommendation:** A supported finding that either returns the workflow to T6: Estimate attendance or requires human review; write undetermined if no supported finding was reached.
+- **Evidence summary:** The key completeness checks, attendance-signal comparisons, and estimate findings supporting the result.
 - **Subtasks performed:** Permitted subtasks completed, including repeated attempts.
-- **Unresolved issues:** Remaining uncertainties or questions; use none only if no unresolved issue remains.
-- **Handoff note:** Reason for stopping, unresolved questions, and what the reviewer needs to decide; write "Not applicable" for a completed task.
-- **Next task or recipient:** Who receives the completed output? Unresolved cases go to the handoff recipient above.
+- **Unresolved issues:** Remaining data conflicts, missing information, or confidence concerns; use none only if the issue was resolved.
+- **Handoff note:** Reason for escalation, unresolved questions, and what the designated organizer needs to decide; write "Not applicable" for a resolved task.
+- **Next task or recipient:** T6: Estimate attendance if resolved; the designated organizer if escalated.
