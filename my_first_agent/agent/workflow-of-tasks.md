@@ -33,8 +33,8 @@ flowchart TD
     D1 -->|Yes| T7["T7: Recommend food, drink, and swag quantities"]
     D1 -->|No| T8["T8: Investigate attendance issues"]
     T8 --> D2{"D2: Issue resolved?"}
-    D2 -->|Yes| T6
-    D2 -->|No| T7
+    D2 -->|Yes: re-estimate| T6
+    D2 -->|No: retain review flag| T7
     T7 --> T9["T9: Record forecast and assumptions"]
     T9 --> T10["T10: Notify organizer"]
     T10 --> D3{"D3: Human review required?"}
