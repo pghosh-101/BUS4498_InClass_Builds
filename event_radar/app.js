@@ -332,9 +332,9 @@
 
   filterButtons.forEach(function (button) {
     button.addEventListener("click", function () {
-      currentFilter = button.dataset.filter || "all";
+      currentFilter = currentFilter === "food" ? "all" : "food";
       filterButtons.forEach(function (otherButton) {
-        otherButton.setAttribute("aria-pressed", String(otherButton === button));
+        otherButton.setAttribute("aria-pressed", String(currentFilter === "food"));
       });
       renderEvents();
     });
