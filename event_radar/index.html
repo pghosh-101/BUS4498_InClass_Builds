@@ -53,9 +53,8 @@
         </div>
         <button class="ghost" type="button" id="refresh-button">Refresh</button>
       </div>
-      <div class="filters" aria-label="Event filters">
-        <button class="chip" type="button" data-filter="all" aria-pressed="true">All events</button>
-        <button class="chip" type="button" data-filter="food" aria-pressed="false">Free food</button>
+      <div class="filters" role="group" aria-label="Event filters">
+        <button class="chip" type="button" data-filter="food" aria-pressed="false">Free food only</button>
       </div>
       <ul class="board" id="event-board" aria-live="polite"></ul>
     </section>
