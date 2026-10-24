@@ -61,6 +61,25 @@
     </section>
   </main>
 
+  <section class="wrap">
+    <details class="card mod" id="moderator-panel">
+      <summary>Moderator sign-in</summary>
+      <form id="moderator-signin-form">
+        <label for="moderator-email">Email</label>
+        <input id="moderator-email" type="email" autocomplete="username" required>
+        <label for="moderator-password">Password</label>
+        <input id="moderator-password" type="password" autocomplete="current-password" required>
+        <button type="submit" id="moderator-signin-button">Sign in</button>
+      </form>
+      <p class="muted" id="moderator-status" aria-live="polite"></p>
+      <div id="moderator-content" hidden>
+        <p><button class="ghost" type="button" id="moderator-signout">Sign out</button></p>
+        <h2>Posts waiting for review</h2>
+        <ul class="board preview" id="waiting-board"></ul>
+      </div>
+    </details>
+  </section>
+
   <footer class="wrap foot">
     <p>Club Event Radar · Practice project for BUS 4498</p>
   </footer>

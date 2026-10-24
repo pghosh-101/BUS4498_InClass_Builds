@@ -21,8 +21,18 @@
   const boardStatus = document.getElementById("board-status");
   const refreshButton = document.getElementById("refresh-button");
   const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+  const moderatorPanel = document.getElementById("moderator-panel");
+  const moderatorSigninForm = document.getElementById("moderator-signin-form");
+  const moderatorEmail = document.getElementById("moderator-email");
+  const moderatorPassword = document.getElementById("moderator-password");
+  const moderatorSigninButton = document.getElementById("moderator-signin-button");
+  const moderatorStatus = document.getElementById("moderator-status");
+  const moderatorContent = document.getElementById("moderator-content");
+  const moderatorSignout = document.getElementById("moderator-signout");
+  const waitingBoard = document.getElementById("waiting-board");
   let events = [];
   let currentFilter = "all";
+  let moderatorUser = null;
 
   function setText(element, value) {
     element.textContent = value == null ? "" : String(value);
@@ -127,6 +137,25 @@
     return item;
   }
 
+  function moderatorCard(event) {
+    const item = eventCard(event);
+    const review = document.createElement("div");
+    review.className = "review";
+    addText(review, "p", "why", event.status_reason || "This post needs moderator review.");
+    addText(review, "p", "original", event.announcement || "");
+    const actions = document.createElement("p");
+    actions.className = "actions";
+    const approve = addText(actions, "button", "", "Approve");
+    approve.type = "button";
+    const reject = addText(actions, "button", "ghost", "Reject");
+    reject.type = "button";
+    approve.addEventListener("click", function () { updateReview(event, "published", approve, reject); });
+    reject.addEventListener("click", function () { updateReview(event, "rejected", approve, reject); });
+    review.appendChild(actions);
+    item.appendChild(review);
+    return item;
+  }
+
   function renderEvents() {
     board.replaceChildren();
     const visibleEvents = currentFilter === "food"
@@ -167,6 +196,93 @@
     events = Array.isArray(response.data) ? response.data : [];
     setText(boardStatus, `${events.length} published event${events.length === 1 ? "" : "s"}`);
     renderEvents();
+  }
+
+  async function loadWaiting() {
+    if (!database || !moderatorUser) return;
+    const response = await database
+      .from("events")
+      .select("id, created_at, status, status_reason, announcement, title, club, event_date, start_time, end_time, place_name, place_detail, cost, free_food, summary, flyer_url")
+      .eq("status", "waiting")
+      .order("created_at", { ascending: false });
+    if (response.error) {
+      console.error(response.error);
+      setText(moderatorStatus, "The waiting posts could not be loaded.");
+      waitingBoard.replaceChildren();
+      addText(waitingBoard, "li", "empty", "The moderator list is temporarily unavailable.");
+      return;
+    }
+    waitingBoard.replaceChildren();
+    const waiting = Array.isArray(response.data) ? response.data : [];
+    if (!waiting.length) {
+      addText(waitingBoard, "li", "empty", "No posts are waiting for review.");
+      return;
+    }
+    waiting.forEach(function (event) { waitingBoard.appendChild(moderatorCard(event)); });
+  }
+
+  async function updateReview(event, status, approve, reject) {
+    if (!database || !moderatorUser) return;
+    approve.disabled = true;
+    reject.disabled = true;
+    const response = await database.from("events").update({
+      status,
+      status_reason: status === "published" ? "Approved by moderator." : "Rejected by moderator.",
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: moderatorUser.id,
+    }).eq("id", event.id).eq("status", "waiting");
+    if (response.error) {
+      console.error(response.error);
+      setText(moderatorStatus, "That review could not be saved.");
+      approve.disabled = false;
+      reject.disabled = false;
+      return;
+    }
+    setText(moderatorStatus, status === "published" ? "Post approved." : "Post rejected.");
+    await Promise.all([loadWaiting(), loadEvents()]);
+  }
+
+  function updateModeratorView(session) {
+    moderatorUser = session && session.user ? session.user : null;
+    const signedIn = Boolean(moderatorUser);
+    moderatorSigninForm.hidden = signedIn;
+    moderatorContent.hidden = !signedIn;
+    if (signedIn) {
+      moderatorPanel.open = true;
+      setText(moderatorStatus, `Signed in as ${moderatorUser.email || "moderator"}.`);
+      loadWaiting();
+    } else {
+      setText(moderatorStatus, "Sign in to review waiting posts.");
+      waitingBoard.replaceChildren();
+    }
+  }
+
+  async function signInModerator(event) {
+    event.preventDefault();
+    if (!database) return;
+    moderatorSigninButton.disabled = true;
+    setText(moderatorStatus, "Signing in…");
+    const response = await database.auth.signInWithPassword({
+      email: moderatorEmail.value.trim(),
+      password: moderatorPassword.value,
+    });
+    moderatorSigninButton.disabled = false;
+    if (response.error) {
+      setText(moderatorStatus, "Sign-in failed. Check the email and password.");
+      return;
+    }
+    moderatorPassword.value = "";
+    updateModeratorView(response.data.session);
+  }
+
+  async function signOutModerator() {
+    if (!database) return;
+    const response = await database.auth.signOut();
+    if (response.error) {
+      setText(moderatorStatus, "Sign-out failed. Try again.");
+      return;
+    }
+    updateModeratorView(null);
   }
 
   async function submitAnnouncement(event) {
@@ -226,5 +342,14 @@
 
   form.addEventListener("submit", submitAnnouncement);
   refreshButton.addEventListener("click", loadEvents);
+  moderatorSigninForm.addEventListener("submit", signInModerator);
+  moderatorSignout.addEventListener("click", signOutModerator);
+  if (database) {
+    database.auth.getSession().then(function (response) { updateModeratorView(response.data.session); });
+    database.auth.onAuthStateChange(function (_event, session) { updateModeratorView(session); });
+  } else {
+    moderatorSigninForm.hidden = true;
+    setText(moderatorStatus, "Add the Supabase configuration to sign in.");
+  }
   loadEvents();
 })();
