@@ -11,6 +11,7 @@
 
   const form = document.getElementById("post-form");
   const announcementInput = document.getElementById("announcement");
+  const flyerInput = document.getElementById("flyer");
   const postButton = document.getElementById("post-button");
   const result = document.getElementById("post-result");
   const resultLabel = result.querySelector(".result-label");
@@ -114,6 +115,15 @@
     if (event.free_food) addText(tags, "span", "tag food", "🍕 Free food");
     body.appendChild(tags);
     item.appendChild(body);
+    const flyerPrefix = `${supabaseUrl}/storage/v1/object/public/flyers/`;
+    if (typeof event.flyer_url === "string" && event.flyer_url.startsWith(flyerPrefix)) {
+      const flyer = document.createElement("img");
+      flyer.className = "flyer";
+      flyer.src = event.flyer_url;
+      flyer.alt = `${event.title || "Event"} flyer`;
+      flyer.loading = "lazy";
+      item.appendChild(flyer);
+    }
     return item;
   }
 
@@ -142,7 +152,7 @@
     setText(boardStatus, "Loading events…");
     const response = await database
       .from("events")
-      .select("id, created_at, status, title, club, event_date, start_time, end_time, place_name, place_detail, cost, free_food, summary")
+      .select("id, created_at, status, title, club, event_date, start_time, end_time, place_name, place_detail, cost, free_food, summary, flyer_url")
       .eq("status", "published")
       .order("event_date", { ascending: true, nullsFirst: false })
       .order("start_time", { ascending: true, nullsFirst: false });
@@ -169,6 +179,7 @@
     setResult("waiting", "Working…", "The event agent is reading the announcement.", []);
     const formData = new FormData();
     formData.append("announcement", announcementInput.value.trim());
+    if (flyerInput.files && flyerInput.files[0]) formData.append("flyer", flyerInput.files[0]);
     try {
       const response = await fetch(agentUrl, {
         method: "POST",
@@ -188,8 +199,11 @@
       };
       const status = labels[body.status] ? body.status : "error";
       setResult(status, labels[body.status] || "Response", body.message || "The agent responded.", body.reasons);
-      if (body.status === "published") {
+      if (body.ok) {
         announcementInput.value = "";
+        flyerInput.value = "";
+      }
+      if (body.status === "published") {
         await loadEvents();
       }
     } catch (error) {

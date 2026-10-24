@@ -31,6 +31,11 @@
           <span class="hint">1–2000 characters</span>
         </label>
         <textarea id="announcement" name="announcement" maxlength="2000" required placeholder="Board Game Guild: Game Night! Thursday, October 29, 7 to 10 pm in the University Union, Room 220..."></textarea>
+        <label for="flyer">
+          Flyer photo (optional)
+          <span class="hint">JPG or PNG, up to 5 MB</span>
+        </label>
+        <input id="flyer" name="flyer" type="file" accept="image/jpeg,image/png">
         <button type="submit" id="post-button">Create event card</button>
       </form>
       <div id="post-result" class="result" hidden aria-live="polite">
