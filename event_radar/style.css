@@ -3,8 +3,8 @@
    (see "Page design" in AGENTS.md). Add new styles at the end only for features this file doesn't cover. */
 
 :root {
-  --bg: #FBF7F2; --bg-2: #F4EDE4; --card: #FFFFFF; --ink: #1F1A17; --ink-2: #4A423C; --muted: #776C63; --line: #ECE1D6; --line-2: #DCCFC2;
-  --accent: #1F5D42; --accent-2: #D4A72C; --accent-ink: #174631; --on-accent: #FFFFFF; --accent-soft: #E5F0EA; --glow: rgba(31, 93, 66, .22);
+  --bg: #0B2F24; --bg-2: #123D2D; --card: #164936; --ink: #FFFFFF; --ink-2: #E4F1EA; --muted: #B7D0C1; --line: #2A5A47; --line-2: #3F765F;
+  --accent: #D4A72C; --accent-2: #F2CD65; --accent-ink: #F2CD65; --on-accent: #0B2F24; --accent-soft: #214E3B; --glow: rgba(212, 167, 44, .22);
   --ok: #1E7A4A; --ok-soft: #E4F4EA; --wait: #8A5A00; --wait-soft: #FFF3D9; --bad: #B3261E; --bad-soft: #FCE9E7;
   --shadow: 0 1px 2px rgba(31, 26, 23, .05), 0 8px 24px rgba(31, 26, 23, .06);
   --shadow-2: 0 2px 4px rgba(31, 26, 23, .06), 0 18px 48px rgba(31, 26, 23, .12);
@@ -14,8 +14,8 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #131110; --bg-2: #1A1614; --card: #1C1917; --ink: #F4EFE9; --ink-2: #D6CCC2; --muted: #A79B90; --line: #2E2925; --line-2: #3D3631;
-    --accent: #4FA77A; --accent-2: #E1B94A; --accent-ink: #A8D8BC; --on-accent: #102218; --accent-soft: #203D2D; --glow: rgba(79, 167, 122, .22);
+    --bg: #061A13; --bg-2: #0B2F24; --card: #103A2B; --ink: #FFFFFF; --ink-2: #E9F5EE; --muted: #A9C8B6; --line: #1F4C3A; --line-2: #2E654E;
+    --accent: #E1B94A; --accent-2: #F7D978; --accent-ink: #F7D978; --on-accent: #0A2118; --accent-soft: #1B4634; --glow: rgba(225, 185, 74, .24);
     --ok: #7EE2A8; --ok-soft: #173326; --wait: #FFCB6B; --wait-soft: #3A2E12; --bad: #FF8F85; --bad-soft: #3A1B19;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
     --shadow-2: 0 2px 4px rgba(0, 0, 0, .4), 0 18px 48px rgba(0, 0, 0, .45);
@@ -105,7 +105,7 @@ button.danger:hover { box-shadow: 0 6px 18px rgba(179, 38, 30, .3); }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 .date {
   display: flex; flex-direction: column; align-items: center; justify-content: center; height: 68px; border-radius: 14px;
-  background: linear-gradient(160deg, var(--accent), #F07A3A); color: #FFFFFF; text-align: center; line-height: 1;
+  background: linear-gradient(160deg, var(--accent), var(--accent-2)); color: var(--on-accent); text-align: center; line-height: 1;
 }
 .date .mon { font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .92; }
 .date .day-num { font-size: 1.7rem; font-weight: 800; margin-top: 4px; }
