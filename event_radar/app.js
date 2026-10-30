@@ -247,7 +247,7 @@
     }
   }
   function review(ev, status) {
-    var stamp = { reviewed_at: new Date().toISOString(), reviewed_by: session.user.email };
+    var stamp = { reviewed_at: new Date().toISOString(), reviewed_by: session.user.id };
     db.from("events")
       .update({ status: status, reviewed_at: stamp.reviewed_at, reviewed_by: stamp.reviewed_by })
       .eq("id", ev.id)
