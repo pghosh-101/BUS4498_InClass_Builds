@@ -154,13 +154,27 @@ function uniqueReasons(reasons: string[]): string[] {
   return [...new Set(reasons.map((reason) => reason.trim()).filter(Boolean))];
 }
 
-type Submission = { announcement: string; flyer: File | null };
+type Submission = {
+  announcement: string;
+  flyer: File | null;
+  source: string;
+  sourceId: string;
+  sourceName: string;
+  thread: string[];
+};
 
 async function parseSubmission(request: Request): Promise<Submission> {
   const contentType = request.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
     const body = await request.json();
-    return { announcement: cleanString(body?.announcement), flyer: null };
+    return {
+      announcement: cleanString(body?.announcement),
+      flyer: null,
+      source: cleanString(body?.source),
+      sourceId: cleanString(body?.source_id),
+      sourceName: cleanString(body?.source_name),
+      thread: Array.isArray(body?.thread) ? body.thread.map(cleanString).filter(Boolean).slice(-4) : [],
+    };
   }
   if (contentType.includes("form")) {
     const body = await request.formData();
@@ -168,9 +182,13 @@ async function parseSubmission(request: Request): Promise<Submission> {
     return {
       announcement: cleanString(body.get("announcement")),
       flyer: candidate instanceof File && candidate.size > 0 ? candidate : null,
+      source: "",
+      sourceId: "",
+      sourceName: "",
+      thread: [],
     };
   }
-  return { announcement: cleanString(await request.text()), flyer: null };
+  return { announcement: cleanString(await request.text()), flyer: null, source: "", sourceId: "", sourceName: "", thread: [] };
 }
 
 type TextResponse = { content: Array<{ type: string; text?: string }> };
@@ -255,10 +273,16 @@ Deno.serve(async (request) => {
 
   let announcement = "";
   let flyer: File | null = null;
+  let source = "";
+  let sourceId = "";
+  let sourceName = "";
   try {
     const submission = await parseSubmission(request);
     announcement = submission.announcement;
     flyer = submission.flyer;
+    source = submission.source;
+    sourceId = submission.sourceId;
+    sourceName = submission.sourceName;
   } catch {
     return jsonResponse({ ok: false, message: "The announcement could not be read." }, 400);
   }
@@ -276,6 +300,29 @@ Deno.serve(async (request) => {
 
   if (!serviceKey || !supabaseUrl) {
     return jsonResponse({ ok: false, message: "The Supabase database connection is not configured." }, 500);
+  }
+
+  if (source && sourceId) {
+    const { data: alreadyRead, error: duplicateReadError } = await admin
+      .from("events")
+      .select("id")
+      .eq("source", source)
+      .eq("source_id", sourceId)
+      .limit(1)
+      .maybeSingle();
+    if (duplicateReadError) {
+      console.error("source message duplicate check failed", duplicateReadError);
+      return jsonResponse({ ok: false, message: "The agent could not check whether this chat message was already read." }, 500);
+    }
+    if (alreadyRead) {
+      return jsonResponse({
+        ok: true,
+        status: "duplicate",
+        already_read: true,
+        message: "That chat message was already read.",
+        reasons: ["This source message already has a decision."],
+      });
+    }
   }
 
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -360,6 +407,9 @@ Deno.serve(async (request) => {
     note_for_moderator: noteForModerator,
     dedupe_key: dedupeKey,
     ai_model: MODEL,
+    source,
+    source_id: sourceId,
+    source_name: sourceName,
   }).select().single();
 
   if (insertError) {
