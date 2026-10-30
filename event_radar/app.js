@@ -244,6 +244,7 @@
       $("modWho").textContent = session.user.email;
       loadWaiting();
       loadLessons();
+      loadManageEvents();
     }
   }
   function review(ev, status) {
@@ -263,6 +264,7 @@
       .then(function () {
         toast(status === "published" ? "Approved and posted" : "Rejected");
         loadWaiting();
+        loadManageEvents();
         loadBoard(true);
       });
   }
@@ -309,6 +311,40 @@
         $("waitingStatus").textContent = res.data.length ? res.data.length + " waiting" : "Nothing is waiting. Nice work.";
       });
   }
+  function loadManageEvents() {
+    $("manageStatus").textContent = "Loading…";
+    db.from("events").select("*").in("status", ["published", "waiting"]).order("event_date", { ascending: true, nullsFirst: false }).order("start_time", { ascending: true, nullsFirst: false })
+      .then(function (res) {
+        var list = $("manageList");
+        list.textContent = "";
+        if (res.error) { $("manageStatus").textContent = "Couldn't load events: " + res.error.message; return; }
+        if (!res.data.length) { $("manageStatus").textContent = "No published or waiting events."; return; }
+        res.data.forEach(function (ev) {
+          var remove = el("button", "danger", "Remove");
+          remove.type = "button";
+          remove.addEventListener("click", function () {
+            if (!window.confirm("Remove “" + (ev.title || "this event") + "”? This cannot be undone.")) return;
+            remove.disabled = true;
+            remove.textContent = "Removing…";
+            db.from("events").delete().eq("id", ev.id).then(function (r) {
+              if (r.error) {
+                $("manageStatus").textContent = "Couldn't remove that event: " + r.error.message;
+                remove.disabled = false;
+                remove.textContent = "Remove";
+                return;
+              }
+              toast("Event removed");
+              loadManageEvents();
+              loadBoard(true);
+            });
+          });
+          var li = el("li");
+          li.appendChild(card(ev, remove));
+          list.appendChild(li);
+        });
+        $("manageStatus").textContent = res.data.length + (res.data.length === 1 ? " event" : " events") + " available to remove.";
+      });
+  }
   $("signInForm").addEventListener("submit", function (e) {
     e.preventDefault();
     $("signInMsg").textContent = "Signing in…";
@@ -332,7 +368,7 @@
       if (res.error) { $("toolsMsg").textContent = "Couldn't clear the board: " + res.error.message; return; }
       $("toolsMsg").textContent = "The board is empty.";
       toast("Board cleared");
-      loadWaiting(); loadBoard(true);
+      loadWaiting(); loadManageEvents(); loadBoard(true);
     });
   });
 

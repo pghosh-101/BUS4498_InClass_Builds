@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Club Event Radar</title>
+<title>Mustang Meetup</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="topbar">
   <div class="wrap bar">
-    <a class="brand" href="#top"><span class="logo" aria-hidden="true"></span>Club Event Radar</a>
+    <a class="brand" href="#top"><span class="logo" aria-hidden="true"></span>Mustang Meetup</a>
     <nav class="actions" aria-label="Site actions">
       <span class="live" id="live" title="The board updates by itself"><span class="dot" aria-hidden="true"></span>Live</span>
       <button type="button" class="ghost small" id="openPost">+ Post<span class="long"> an event</span></button>
@@ -21,8 +21,8 @@
 
 <section class="hero" id="top">
   <div class="wrap">
-    <p class="kicker">Campus clubs · live board</p>
-    <h1>What’s happening <em>on campus</em></h1>
+    <p class="kicker">Where campus comes alive</p>
+    <h1>Mustang <em>Meetup</em></h1>
     <p class="lede">Clubs post in their chat. An AI agent turns each post into a card, checks the posting rules, and remembers what it already posted.</p>
     <ul class="stats" aria-label="Board summary">
       <li><b id="statCount">0</b><span>events</span></li>
@@ -108,6 +108,10 @@
         <ul id="lessonsList" class="lessons"></ul>
       </section>
       <section class="tabpanel" data-panel="tools" hidden>
+        <h3>Remove one event</h3>
+        <p class="muted">Delete a single published or waiting post without clearing the rest of the board.</p>
+        <p id="manageStatus" class="muted" role="status"></p>
+        <ul id="manageList" class="queue"></ul>
         <h3>Clear the board</h3>
         <p class="muted">Deletes every post, published or not. The club list and the lessons stay. Use it to start a demo clean.</p>
         <button type="button" class="danger" id="clearBtn">Clear the board…</button>
