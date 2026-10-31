@@ -37,7 +37,7 @@
 
 **The fix (Step 2):** (not answered)
 
-**My chat group (Step 4):** (not answered)
+**My chat group (Step 4):** My first post reached the website in about one minute, and the bot replied, “Event Radar: Your event is posted.”
 
 **Knowledge (Step 5):** Redeployed: nothing. Only the clubs table changed; post C picked up the new club automatically.
 
